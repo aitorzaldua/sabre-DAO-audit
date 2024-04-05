@@ -117,6 +117,12 @@ contract SabreDAOStaking {
     }
 
     function _claimAndUnstake(uint256 amountToUnstake) public {
+        /**
+         * @audit-qa Reentrancy, just change the order of the instructions to:
+         *           _unStake(amountToUnstake);
+         *           _claimReward();
+         *           and add the OZ ReentrancyGuard
+         */
         _claimReward();
         _unStake(amountToUnstake);
     }
