@@ -177,7 +177,17 @@ contract SabreDAOEngine is Ownable, ISabreDAOEngine {
     ////////////////////////////////////
     ///////Modifier////////////////////
     //////////////////////////////////
+
     modifier onlyHolders(address holders) {
+        /**
+         * @audit-qa DOS ATTACK
+         *           a_tokenHolders is an array so it can grow ad infinitum
+         *           a malicious user can use buy() to add 10000 users using just 1 wei
+         *           And all the functions that have the  onlyHolders modifier will fail
+         *           Due to gas consumption.
+         *           SOLUTION: a_tokenHolders should be a mapping with an Id or something
+         *           and just check if the holder is in the mapping
+         */
         bool isHolder = false;
         for (uint256 i = 0; i < a_tokenHolders.length; i++) {
             if (a_tokenHolders[i] == holders) {
@@ -218,6 +228,14 @@ contract SabreDAOEngine is Ownable, ISabreDAOEngine {
     // }
 
     function buy(uint256 amountToBuy) public payable {
+        /*
+     * @audit-qa REENTRANCY ATTACK
+     *           Always follow the pattern Check-Effect-Interact so..
+     *           m_SabreDAOBuy[msg.sender] += amountToBuy;
+                 a_tokenHolders.push(msg.sender);
+                 sabreDAO.transferFrom(address(this), msg.sender, amountToBuy);
+                 emit buyer(msg.sender, amountToBuy);
+     */
         m_SabreDAOBuy[msg.sender] += amountToBuy;
         // sabreDAO._mint(msg.sender, amountToBuy);
         sabreDAO.transferFrom(address(this), msg.sender, amountToBuy);
