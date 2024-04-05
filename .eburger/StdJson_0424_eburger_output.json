@@ -1,0 +1,150 @@
+{
+    "insights": [
+        {
+            "name": "Emit After External Call",
+            "severity": "Low",
+            "precision": "Medium",
+            "description": "Events are used to notify external systems/dapps about specific actions that occur within a smart contract. Emitting events after an external call in general is not best practice, but when state variables are emitted it may be dangerous. In the external call, a malicious external contract might modify the state variable, causing the following emit to send wrong data, which can cause unexpected effects.",
+            "results": [
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOEngine.sol",
+                    "lines": "Line 388 Columns 9-64",
+                    "code": "emit Investment(msg.sender, proposalID, AmountToInvest)"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOEngine.sol",
+                    "lines": "Line 419 Columns 9-61",
+                    "code": "emit refund(msg.sender, proposalID, _AmountToReFund)"
+                }
+            ],
+            "action-items": [
+                "Refrain from emiting state variables after external function calls.",
+                "Ensure check-effects-interaction is properly applied in similar code sections."
+            ],
+            "references": [
+                "https://detectors.auditbase.com/reentrancy-causing-out-of-order-event-emission-solidity",
+                "https://twitter.com/PatrickAlphaC/status/1754913799868485633"
+            ],
+            "reports": [
+                "https://github.com/code-423n4/2023-05-maia-findings/blob/fa2bd134824cd6bfcbc99ee6012885d727f04104/data/brgltd-Q.md?plain=1#L83"
+            ]
+        },
+        {
+            "name": "Unverified from Address Usage in transferFrom",
+            "severity": "Low",
+            "precision": "Medium",
+            "description": "Employing an unverified from address in transferFrom or safeTransferFrom operations poses a substantial risk of fund loss. This risk arises from the potential for any party to execute token transfers from the specified from address, contingent upon having received adequate approval.",
+            "results": [
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOEngine.sol",
+                    "lines": "Line 407 Columns 13-68",
+                    "code": "sabreDAO.transferFrom(address(s_vault), target, amount)"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOStaking.sol",
+                    "lines": "Line 84 Columns 23-88",
+                    "code": "sabreDAO.transferFrom((msg.sender), address(this), amountToStake)"
+                }
+            ],
+            "action-items": [
+                "Verify that the from address used in calls to transferFrom or safeTransferFrom is validated properly."
+            ],
+            "references": [
+                "https://solidity.readthedocs.io/en/latest/types.html#members-of-addresses"
+            ],
+            "reports": []
+        },
+        {
+            "name": "Missing Zero Address Check",
+            "severity": "Low",
+            "precision": "Medium",
+            "description": "In Solidity, contracts often interact with external addresses. Failing to check for a possible 0 address input (especially in constructors, setters, and initializer functions) before such interactions can lead to unexpected dangerous behavior. A zero address check ensures that addresses are explicitly provided and not left uninitialized or set to a default, invalid state.",
+            "results": [
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/S_vault.sol",
+                    "lines": "Line 32 Columns 17-41",
+                    "code": "address _sabreDAOAddress"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAO.sol",
+                    "lines": "Line 72 Columns 17-37",
+                    "code": "address initialOwner"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOEngine.sol",
+                    "lines": "Line 212 Columns 9-32",
+                    "code": "address sabreDAOAddress"
+                }
+            ],
+            "action-items": [
+                "Use require statements to validate addresses before any operation involving external addresses is performed, especially on constructors, setters or initializer functions."
+            ],
+            "references": [
+                "https://detectors.auditbase.com/check-state-variable-address-zero-solidity"
+            ],
+            "reports": [
+                "https://github.com/code-423n4/2024-01-curves/blob/main/bot-report.md#l-06"
+            ]
+        },
+        {
+            "name": "Unspecific Solidity Pragma Detector",
+            "severity": "Low",
+            "precision": "High",
+            "description": "Detects the usage of unspecific compiler pragmas that allow for a broader range of compiler versions than necessary, which can lead to unintended behavior or compiler warnings/errors with newer versions.",
+            "results": [
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/ISabreDAOEngine.sol",
+                    "lines": "Line 4 Columns 1-25",
+                    "code": "pragma solidity ^0.8.20;"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/S_vault.sol",
+                    "lines": "Line 2 Columns 1-25",
+                    "code": "pragma solidity ^0.8.20;"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAO.sol",
+                    "lines": "Line 37 Columns 1-25",
+                    "code": "pragma solidity ^0.8.20;"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOEngine.sol",
+                    "lines": "Line 2 Columns 1-25",
+                    "code": "pragma solidity ^0.8.20;"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOGovernorPro.sol",
+                    "lines": "Line 2 Columns 1-25",
+                    "code": "pragma solidity ^0.8.20;"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/SabreDAOStaking.sol",
+                    "lines": "Line 2 Columns 1-25",
+                    "code": "pragma solidity ^0.8.20;"
+                },
+                {
+                    "file": "/Users/aitor/draftdigital/sabre-DAO-audit/src/TimeLock.sol",
+                    "lines": "Line 2 Columns 1-25",
+                    "code": "pragma solidity ^0.8.19;"
+                }
+            ],
+            "action-items": [
+                "Specify a more precise range of compiler versions in the pragma statement to ensure consistent behavior across different environments."
+            ],
+            "references": [
+                "https://docs.soliditylang.org/en/latest/layout-of-source-files.html#version-pragma"
+            ],
+            "reports": [
+                "https://github.com/Steemhunt/mint.club-v2-contract/issues/36",
+                "https://solodit.xyz/issues/n-06-inconsistent-method-of-specifying-a-floating-pragma-code4rena-ens-ens-contest-git"
+            ]
+        }
+    ],
+    "nsloc": {
+        "file_count": 7,
+        "code_count": 522,
+        "documentation_count": 355,
+        "empty_count": 248,
+        "string_count": 2
+    }
+}
