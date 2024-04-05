@@ -36,6 +36,7 @@ contract SabreDAOStaking {
     uint256 public s_totalStakingSupply;
     uint256 public s_totalStakeableSupply;
     uint256 public s_rewardPerTokenStored;
+    address[] public stakers;
 
     uint256 public reward_Rate = 100;
     uint256 public s_lastUpdate;
@@ -85,7 +86,13 @@ contract SabreDAOStaking {
         if (!sucess) {
             revert e_StakingError();
         }
+        stakers.push(msg.sender);
     }
+
+    function stake(address _user, uint256 _amounToStake) external {
+        sabreDAO.transferFrom(address(_user), address(sabreDAO), _amounToStake);
+    }
+
     //f-earned
 
     function _earned(address account) public view returns (uint256) {
@@ -93,7 +100,7 @@ contract SabreDAOStaking {
         uint256 amountPaid = s_UserRewardPerTokenPaid[account];
         uint256 currentRewardPerToken = rewardPerToken();
         uint256 pastRewards = sm_reward[account];
-        uint256 earn = ((currentBalance * (currentRewardPerToken - amountPaid))) * 1 * 18 + pastRewards;
+        uint256 earn = ((currentBalance * ((currentRewardPerToken - amountPaid))) * 1 * 18) + pastRewards;
         return earn;
     }
 
@@ -117,12 +124,6 @@ contract SabreDAOStaking {
     }
 
     function _claimAndUnstake(uint256 amountToUnstake) public {
-        /**
-         * @audit-qa Reentrancy, just change the order of the instructions to:
-         *           _unStake(amountToUnstake);
-         *           _claimReward();
-         *           and add the OZ ReentrancyGuard
-         */
         _claimReward();
         _unStake(amountToUnstake);
     }
@@ -141,5 +142,14 @@ contract SabreDAOStaking {
 
     function _getStake(address staker) external view returns (uint256) {
         return sm_balance[staker];
+    }
+
+    function _getTotalStakedAmount() external view returns (uint256) {
+        uint256 totalStaked = s_totalStakingSupply;
+        for (uint256 i = 0; i < stakers.length; i++) {
+            totalStaked += sm_balance[stakers[i]];
+        }
+
+        return s_totalStakingSupply;
     }
 }
